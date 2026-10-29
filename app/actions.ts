@@ -5,6 +5,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { SESSION_COOKIE, isValidPassword, isValidSession, sessionToken } from "@/lib/auth";
 import * as games from "@/lib/games";
+import * as barcodes from "@/lib/barcodes";
 
 // Server actions are reachable by POST, so check the session here as well as in proxy.ts.
 async function requireSession() {
@@ -15,8 +16,17 @@ async function requireSession() {
 export async function addGame(formData: FormData) {
   await requireSession();
   const name = String(formData.get("name") ?? "").trim().slice(0, 200);
-  if (name) await games.addGame(name);
+  if (!name) return;
+  await games.addGame(name);
+  const code = barcodes.normalizeBarcode(String(formData.get("barcode") ?? ""));
+  if (code) await barcodes.rememberBarcode(code, name);
   revalidatePath("/");
+}
+
+export async function lookupBarcode(barcode: string): Promise<string[]> {
+  await requireSession();
+  const code = barcodes.normalizeBarcode(barcode);
+  return code ? barcodes.lookupBarcode(code) : [];
 }
 
 export async function markPlayed(id: string) {

@@ -1,4 +1,5 @@
-import { addGame, logout, markPlayed } from "./actions";
+import { logout, markPlayed } from "./actions";
+import AddGameForm from "./add-game-form";
 import { listGames } from "@/lib/games";
 
 export const dynamic = "force-dynamic";
@@ -15,10 +16,7 @@ export default async function Home() {
         </form>
       </header>
 
-      <form action={addGame} className="row">
-        <input name="name" placeholder="Name des Spiels" required maxLength={200} autoComplete="off" />
-        <button>Hinzufügen</button>
-      </form>
+      <AddGameForm />
 
       {games.length === 0 ? (
         <p className="empty">Keine Spiele auf der Liste.</p>
