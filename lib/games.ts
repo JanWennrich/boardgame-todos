@@ -12,12 +12,15 @@ export async function listGames(): Promise<Game[]> {
   return Object.values(games ?? {}).sort((a, b) => a.addedAt - b.addedAt);
 }
 
-export async function addGame(name: string) {
+// Returns the existing game instead of adding a second one with the same name.
+export async function addGame(name: string): Promise<{ game: Game; added: boolean }> {
   const games = await listGames();
-  if (games.some((g) => g.name.toLowerCase() === name.toLowerCase())) return;
+  const existing = games.find((g) => g.name.toLowerCase() === name.toLowerCase());
+  if (existing) return { game: existing, added: false };
 
   const game: Game = { id: randomUUID(), name, addedAt: Date.now() };
   await redis.hset(KEY, { [game.id]: game });
+  return { game, added: true };
 }
 
 export async function removeGame(id: string) {

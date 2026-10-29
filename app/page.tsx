@@ -1,5 +1,4 @@
-import { logout, markPlayed } from "./actions";
-import AddGameForm from "./add-game-form";
+import GameList from "./game-list";
 import { listGames } from "@/lib/games";
 
 export const dynamic = "force-dynamic";
@@ -9,29 +8,15 @@ export default async function Home() {
 
   return (
     <>
-      <header>
-        <h1>Noch zu spielen</h1>
-        <form action={logout}>
-          <button className="link">Abmelden</button>
-        </form>
+      <header className="top">
+        <p className="eyebrow">🎲 Brettspiel-Liste</p>
+        <h1>
+          Noch zu spielen
+          {games.length > 0 && <span className="count">{games.length}</span>}
+        </h1>
       </header>
 
-      <AddGameForm />
-
-      {games.length === 0 ? (
-        <p className="empty">Keine Spiele auf der Liste.</p>
-      ) : (
-        <ul>
-          {games.map((game) => (
-            <li key={game.id}>
-              <span>{game.name}</span>
-              <form action={markPlayed.bind(null, game.id)}>
-                <button className="secondary">Gespielt ✓</button>
-              </form>
-            </li>
-          ))}
-        </ul>
-      )}
+      <GameList games={games} />
     </>
   );
 }

@@ -16,11 +16,12 @@ async function requireSession() {
 export async function addGame(formData: FormData) {
   await requireSession();
   const name = String(formData.get("name") ?? "").trim().slice(0, 200);
-  if (!name) return;
-  await games.addGame(name);
+  if (!name) return null;
+  const result = await games.addGame(name);
   const code = barcodes.normalizeBarcode(String(formData.get("barcode") ?? ""));
   if (code) await barcodes.rememberBarcode(code, name);
   revalidatePath("/");
+  return result;
 }
 
 export async function lookupBarcode(barcode: string): Promise<string[]> {
@@ -47,9 +48,4 @@ export async function login(formData: FormData) {
     path: "/",
   });
   redirect("/");
-}
-
-export async function logout() {
-  (await cookies()).delete(SESSION_COOKIE);
-  redirect("/login");
 }
