@@ -1,10 +1,13 @@
 import GameList from "./game-list";
+import PlayedList from "./played-list";
 import { listGames } from "@/lib/games";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const games = await listGames();
+  const all = await listGames();
+  const games = all.filter((g) => !g.playedAt);
+  const played = all.filter((g) => g.playedAt).sort((a, b) => b.playedAt! - a.playedAt!);
 
   return (
     <>
@@ -17,6 +20,7 @@ export default async function Home() {
       </header>
 
       <GameList games={games} />
+      <PlayedList games={played} />
     </>
   );
 }

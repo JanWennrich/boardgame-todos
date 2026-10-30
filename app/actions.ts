@@ -32,7 +32,7 @@ export async function lookupBarcode(barcode: string): Promise<string[]> {
 
 export async function markPlayed(id: string) {
   await requireSession();
-  await games.removeGame(id);
+  await games.markPlayed(id);
   revalidatePath("/");
 }
 

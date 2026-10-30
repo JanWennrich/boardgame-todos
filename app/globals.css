@@ -258,6 +258,16 @@ button.secondary {
 .games li:has(.played[aria-busy="true"]) { opacity: 0.55; transform: scale(0.97); }
 .games li:has(.played[aria-busy="true"]) .name { text-decoration: line-through 2px; }
 
+/* Played games: quieter cards below the list. */
+
+.played-list { margin-top: 24px; }
+.played-list .count { background: var(--m-green); }
+
+.games.done li { padding: 8px 14px 8px 12px; box-shadow: 2px 2px 0 var(--shadow); animation: none; }
+.games.done .meeple { width: 28px; height: 28px; opacity: 0.7; }
+.games.done .name { color: var(--muted); }
+.games.done time { flex: none; color: var(--muted); font-size: 0.85rem; }
+
 /* Meeples */
 
 .meeple {
