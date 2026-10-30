@@ -252,6 +252,8 @@ button.secondary {
 }
 
 .games .played { min-height: 44px; padding: 0 12px; font-size: 0.95rem; }
+.games .played.armed { color: var(--accent-text); background-color: var(--m-green); }
+.games .played.armed:not([aria-busy="true"]) { animation: wiggle 400ms ease-in-out; }
 
 .games li:has(.played[aria-busy="true"]) { opacity: 0.55; transform: scale(0.97); }
 .games li:has(.played[aria-busy="true"]) .name { text-decoration: line-through 2px; }
