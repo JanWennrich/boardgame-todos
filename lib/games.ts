@@ -37,3 +37,7 @@ export async function markUnplayed(id: string) {
   const { playedAt, ...rest } = game;
   await redis.hset(KEY, { [id]: rest });
 }
+
+export async function deleteGame(id: string) {
+  await redis.hdel(KEY, id);
+}

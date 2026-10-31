@@ -1,8 +1,7 @@
 import { ViewTransition } from "react";
 import type { Game } from "@/lib/games";
-import { markUnplayed } from "./actions";
+import GameDetails from "./game-details";
 import Meeple, { colorFor } from "./meeple";
-import SubmitButton from "./submit-button";
 
 // Rendered on the server, so pin the time zone instead of using the server's.
 const date = new Intl.DateTimeFormat("de-DE", { day: "numeric", month: "short", year: "numeric", timeZone: "Europe/Berlin" });
@@ -23,16 +22,13 @@ export default function PlayedList({ games }: { games: Game[] }) {
       <ul className="games done">
         {games.map((game) => (
           // Same name as in the list above, so a game moves between the two.
-          <ViewTransition key={game.id} name={`game-${game.id}`} share="move" update="move" default="none">
+          <ViewTransition key={game.id} name={`game-${game.id}`} share="move" update="move" exit="pop-out" default="none">
             <li>
               <Meeple color={colorFor(game.id)} />
-              <span className="name">
+              <GameDetails game={game}>
                 {game.name}
                 <time dateTime={new Date(game.playedAt!).toISOString()}>{date.format(game.playedAt)}</time>
-              </span>
-              <form action={markUnplayed.bind(null, game.id)}>
-                <SubmitButton className="secondary unplay">Zurück ↺</SubmitButton>
-              </form>
+              </GameDetails>
             </li>
           </ViewTransition>
         ))}

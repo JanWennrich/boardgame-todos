@@ -251,9 +251,32 @@ button.secondary {
   overflow-wrap: anywhere;
 }
 
+/* The name opens the game's details, see game-details.tsx. */
+.games button.name {
+  --press: 0px;
+  min-height: 0;
+  padding: 0;
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+  text-align: left;
+  white-space: normal;
+  background: none;
+  border: 0;
+  box-shadow: none;
+}
+
+/* Stretched over the whole card, so a tap anywhere opens the details. The card's own button stays on top. */
+.games li { position: relative; }
+.games button.name::after { content: ""; position: absolute; inset: 0; }
+/* A transform would make the button the containing block and shrink the overlay mid-tap. */
+.games button.name:active { transform: none; }
+.games li form { position: relative; z-index: 1; }
+.games button.name:focus-visible { outline: none; }
+.games li:has(.name:focus-visible) { outline: 3px solid var(--m-blue); outline-offset: 2px; }
 .games .played { min-height: 44px; padding: 0 12px; font-size: 0.95rem; }
-.games .played.armed { color: var(--accent-text); background-color: var(--m-green); }
-.games .played.armed:not([aria-busy="true"]) { animation: wiggle 400ms ease-in-out; }
+.played.armed { color: var(--accent-text); background-color: var(--m-green); }
+.played.armed:not([aria-busy="true"]) { animation: wiggle 400ms ease-in-out; }
 
 .games li:has(.played[aria-busy="true"]) { opacity: 0.55; transform: scale(0.97); }
 .games li:has(.played[aria-busy="true"]) .name { text-decoration: line-through 2px; }
@@ -319,8 +342,6 @@ button.secondary {
 .games.done .meeple { width: 28px; height: 28px; opacity: 0.7; }
 .games.done .name { color: var(--muted); }
 .games.done time { display: block; font-size: 0.85rem; font-weight: 400; }
-.games.done .unplay { min-height: 40px; padding: 0 12px; font-size: 0.9rem; box-shadow: 2px 2px 0 var(--shadow); }
-.games.done li:has(.unplay[aria-busy="true"]) { opacity: 0.55; }
 
 /* Meeples */
 
@@ -463,6 +484,20 @@ button.secondary {
 .viewfinder.hit::before { animation: hit-flash 450ms ease-out; }
 .viewfinder.hit::after { background: var(--m-green); box-shadow: 0 0 16px 4px var(--m-green); animation-play-state: paused; }
 
+/* Details sheet, see game-details.tsx. */
+
+.details { align-items: center; }
+.details .close { --press: 2px; position: absolute; top: 12px; right: 12px; display: grid; place-items: center; width: 44px; min-height: 44px; padding: 0; }
+.details .close svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 3; stroke-linecap: round; }
+.details .meeple { width: 64px; height: 64px; animation: hop 2.4s ease-in-out infinite; }
+.details h2 { text-align: center; overflow-wrap: anywhere; }
+.details p { color: var(--muted); }
+.details .row { align-self: stretch; }
+.details .row form { display: flex; flex: 1; }
+.details .delete { color: var(--error); }
+.details .delete.armed { color: #fff; background-color: var(--m-red); }
+.details .delete.armed:not([aria-busy="true"]) { animation: wiggle 400ms ease-in-out; }
+
 @media (min-width: 560px) {
   .sheet {
     width: min(480px, calc(100% - 32px));
@@ -508,6 +543,7 @@ button.secondary {
 }
 
 ::view-transition-new(.pop) { animation: pop-in 360ms cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+::view-transition-old(.pop-out) { animation: pop-out 280ms ease-in both; }
 
 ::view-transition-group(confetti),
 ::view-transition-new(confetti) { animation: none; }
@@ -517,6 +553,10 @@ button.secondary {
 
 @keyframes pop-in {
   from { opacity: 0; transform: scale(0.9) translateY(8px); }
+}
+
+@keyframes pop-out {
+  to { opacity: 0; transform: scale(0.85); }
 }
 
 @keyframes hop {

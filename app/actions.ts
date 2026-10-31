@@ -42,6 +42,12 @@ export async function markUnplayed(id: string) {
   revalidatePath("/");
 }
 
+export async function deleteGame(id: string) {
+  await requireSession();
+  await games.deleteGame(id);
+  revalidatePath("/");
+}
+
 export async function login(formData: FormData) {
   if (!isValidPassword(String(formData.get("password") ?? ""))) {
     // A new value each time, so the form remounts and shakes again on every wrong attempt.

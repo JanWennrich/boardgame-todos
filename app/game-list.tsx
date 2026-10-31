@@ -4,6 +4,7 @@ import { useState, ViewTransition } from "react";
 import type { Game } from "@/lib/games";
 import { markPlayed } from "./actions";
 import AddGame, { type Highlight } from "./add-game";
+import GameDetails from "./game-details";
 import Meeple, { colorFor } from "./meeple";
 import PlayedButton from "./played-button";
 import SortMenu, { defaultSort, type Sort } from "./sort-menu";
@@ -79,7 +80,7 @@ export default function GameList({ games, allPlayed }: { games: Game[]; allPlaye
             return (
               // Named after the game, so it moves over to the played list (and back) instead of
               // vanishing in one place and appearing in the other.
-              <ViewTransition key={game.id} name={`game-${game.id}`} share="move" update="move" enter="pop" default="none">
+              <ViewTransition key={game.id} name={`game-${game.id}`} share="move" update="move" enter="pop" exit="pop-out" default="none">
                 <li
                   className={effect}
                   ref={effect ? (li) => li?.scrollIntoView({ block: "nearest", behavior: "smooth" }) : undefined}
@@ -88,7 +89,9 @@ export default function GameList({ games, allPlayed }: { games: Game[]; allPlaye
                   }}
                 >
                   <Meeple color={colorFor(game.id)} />
-                  <span className="name">{game.name}</span>
+                  <GameDetails game={game} last={games.length === 1}>
+                    {game.name}
+                  </GameDetails>
                   <form action={markPlayed.bind(null, game.id)}>
                     <PlayedButton last={games.length === 1} />
                   </form>

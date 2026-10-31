@@ -4,6 +4,7 @@ import { useEffect, useEffectEvent, useRef, useState } from "react";
 import type { BarcodeDetector as Ponyfill } from "barcode-detector/ponyfill";
 import { lookupBarcode } from "./actions";
 import Meeple from "./meeple";
+import { closeSheet } from "./sheet";
 import { beep } from "./sounds";
 import SubmitButton from "./submit-button";
 
@@ -68,14 +69,7 @@ export default function AddSheet({
     setMessage("Kamera wird gestartet …");
   }
 
-  // Slides the sheet out before closing it; onClose then unmounts it.
-  async function close() {
-    const dialog = dialogRef.current!;
-    dialog.classList.add("closing");
-    // allSettled: the switch to the closing animation cancels a slide-in that is still running.
-    await Promise.allSettled(dialog.getAnimations().map((a) => a.finished));
-    dialog.close();
-  }
+  const close = () => closeSheet(dialogRef.current!);
 
   const detected = useEffectEvent(handleDetected);
   const onHit = useEffectEvent(registerHit);
