@@ -11,19 +11,6 @@ export default async function Home() {
 
   return (
     <>
-      <header className="top">
-        <p className="eyebrow">🎲 Brettspiel-Liste</p>
-        <h1>
-          Noch zu spielen
-          {/* key: a new badge pops whenever the number changes. */}
-          {games.length > 0 && (
-            <span key={games.length} className="count">
-              {games.length}
-            </span>
-          )}
-        </h1>
-      </header>
-
       <GameList games={games} allPlayed={played.length > 0} />
       <PlayedList games={played} />
     </>

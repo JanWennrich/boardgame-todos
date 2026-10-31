@@ -6,6 +6,13 @@ import { markPlayed } from "./actions";
 import AddGame, { type Highlight } from "./add-game";
 import Meeple, { colorFor } from "./meeple";
 import PlayedButton from "./played-button";
+import SortMenu, { defaultSort, type Sort } from "./sort-menu";
+
+const byName = new Intl.Collator("de", { sensitivity: "base", numeric: true });
+const compare: Record<Sort["key"], (a: Game, b: Game) => number> = {
+  date: (a, b) => a.addedAt - b.addedAt,
+  name: (a, b) => byName.compare(a.name, b.name),
+};
 
 export default function GameList({ games, allPlayed }: { games: Game[]; allPlayed: boolean }) {
   // The game just added (flashes) or the existing one a duplicate pointed at (wiggles).
@@ -13,9 +20,28 @@ export default function GameList({ games, allPlayed }: { games: Game[]; allPlaye
   // Cards pop in on page load. Later ones enter through the view transition instead, so a game
   // coming back from the played list doesn't pop while it moves.
   const [intro, setIntro] = useState(games.length > 0);
+  const [sort, setSort] = useState(defaultSort);
+
+  const sorted = games.toSorted((a, b) => (sort.desc ? -1 : 1) * compare[sort.key](a, b));
 
   return (
     <>
+      <header className="top">
+        <p className="eyebrow">🎲 Brettspiel-Liste</p>
+        <div className="title-row">
+          <h1>
+            Noch zu spielen
+            {/* key: a new badge pops whenever the number changes. */}
+            {games.length > 0 && (
+              <span key={games.length} className="count">
+                {games.length}
+              </span>
+            )}
+          </h1>
+          {games.length > 1 && <SortMenu value={sort} onChange={setSort} />}
+        </div>
+      </header>
+
       <AddGame onResult={setHighlight} />
 
       {games.length === 0 ? (
@@ -48,7 +74,7 @@ export default function GameList({ games, allPlayed }: { games: Game[]; allPlaye
             if (e.animationName === "pop-in") setIntro(false);
           }}
         >
-          {games.map((game) => {
+          {sorted.map((game) => {
             const effect = highlight?.id === game.id ? (highlight.added ? "flash" : "wiggle") : undefined;
             return (
               // Named after the game, so it moves over to the played list (and back) instead of

@@ -259,6 +259,57 @@ button.secondary {
 .games li:has(.played[aria-busy="true"]) .name { text-decoration: line-through 2px; }
 .games li:has(.played[aria-busy="true"]) .meeple { animation: hop 450ms ease-out infinite; }
 
+/* Sort menu next to the heading, small enough to share the line on phones. */
+
+.title-row { display: flex; align-items: center; gap: 12px; }
+.sort { position: relative; margin-left: auto; }
+
+.sort > button {
+  --press: 2px;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  min-height: 44px;
+  padding: 0;
+  box-shadow: var(--press) var(--press) 0 var(--shadow);
+}
+
+.sort svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; }
+
+.sort-menu {
+  position: absolute;
+  z-index: 5;
+  top: calc(100% + 8px);
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 240px;
+  padding: 8px;
+  background: var(--surface);
+  border: 2px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: 4px 4px 0 var(--shadow);
+  animation: pop-in 200ms ease-out;
+  transform-origin: top right;
+}
+
+.sort-menu p { padding: 4px 12px; color: var(--muted); font-size: 0.8rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
+
+.sort-menu button {
+  --press: 0px;
+  min-height: 44px;
+  padding: 0 12px;
+  font-size: 1rem;
+  text-align: left;
+  color: var(--text);
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.sort-menu button[aria-pressed="true"] { color: var(--accent-text); background: var(--accent); border-color: var(--line); }
+
 /* Played games: quieter cards below the list. */
 
 .played-list { margin-top: 24px; }
