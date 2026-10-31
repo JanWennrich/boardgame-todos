@@ -29,3 +29,11 @@ export async function markPlayed(id: string) {
   if (!game || game.playedAt) return;
   await redis.hset(KEY, { [id]: { ...game, playedAt: Date.now() } });
 }
+
+// Puts a played game back in its old place on the list.
+export async function markUnplayed(id: string) {
+  const game = await redis.hget<Game>(KEY, id);
+  if (!game?.playedAt) return;
+  const { playedAt, ...rest } = game;
+  await redis.hset(KEY, { [id]: rest });
+}

@@ -263,10 +263,12 @@ button.secondary {
 .played-list { margin-top: 24px; }
 .played-list .count { background: var(--m-green); }
 
-.games.done li { padding: 8px 14px 8px 12px; box-shadow: 2px 2px 0 var(--shadow); animation: none; }
+.games.done li { padding: 8px 10px 8px 12px; box-shadow: 2px 2px 0 var(--shadow); animation: none; }
 .games.done .meeple { width: 28px; height: 28px; opacity: 0.7; }
 .games.done .name { color: var(--muted); }
-.games.done time { flex: none; color: var(--muted); font-size: 0.85rem; }
+.games.done time { display: block; font-size: 0.85rem; font-weight: 400; }
+.games.done .unplay { min-height: 40px; padding: 0 12px; font-size: 0.9rem; box-shadow: 2px 2px 0 var(--shadow); }
+.games.done li:has(.unplay[aria-busy="true"]) { opacity: 0.55; }
 
 /* Meeples */
 

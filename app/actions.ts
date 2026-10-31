@@ -36,6 +36,12 @@ export async function markPlayed(id: string) {
   revalidatePath("/");
 }
 
+export async function markUnplayed(id: string) {
+  await requireSession();
+  await games.markUnplayed(id);
+  revalidatePath("/");
+}
+
 export async function login(formData: FormData) {
   if (!isValidPassword(String(formData.get("password") ?? ""))) {
     redirect("/login?error=1");
