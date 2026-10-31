@@ -106,6 +106,7 @@ p { margin: 0; }
   box-shadow: 2px 2px 0 var(--shadow);
   transform: rotate(-8deg);
   white-space: nowrap;
+  animation: bump 420ms cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 /* Controls */
@@ -230,15 +231,14 @@ button.secondary {
   border: 2px solid var(--line);
   border-radius: var(--radius);
   box-shadow: 4px 4px 0 var(--shadow);
-  --pop: pop-in 320ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
-  animation: var(--pop);
   transition: opacity 200ms, transform 200ms;
   scroll-margin: 24px 0 130px;
 }
 
-/* Keep pop-in in the list so it doesn't replay when the highlight ends. */
-.games li.flash { animation: var(--pop), flash 1.6s ease-out; }
-.games li.wiggle { animation: var(--pop), wiggle 700ms ease-in-out; }
+/* Only on page load; games added later pop in through the view transition. */
+.games.intro li { animation: pop-in 320ms cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+.games li.flash { animation: flash 1.6s ease-out; }
+.games li.wiggle { animation: wiggle 700ms ease-in-out; }
 
 .games .meeple { flex: none; width: 36px; height: 36px; }
 .games li:hover .meeple { animation: hop 400ms ease-out; }
@@ -257,13 +257,14 @@ button.secondary {
 
 .games li:has(.played[aria-busy="true"]) { opacity: 0.55; transform: scale(0.97); }
 .games li:has(.played[aria-busy="true"]) .name { text-decoration: line-through 2px; }
+.games li:has(.played[aria-busy="true"]) .meeple { animation: hop 450ms ease-out infinite; }
 
 /* Played games: quieter cards below the list. */
 
 .played-list { margin-top: 24px; }
 .played-list .count { background: var(--m-green); }
 
-.games.done li { padding: 8px 10px 8px 12px; box-shadow: 2px 2px 0 var(--shadow); animation: none; }
+.games.done li { padding: 8px 10px 8px 12px; box-shadow: 2px 2px 0 var(--shadow); }
 .games.done .meeple { width: 28px; height: 28px; opacity: 0.7; }
 .games.done .name { color: var(--muted); }
 .games.done time { display: block; font-size: 0.85rem; font-weight: 400; }
@@ -309,6 +310,9 @@ button.secondary {
 
 .empty strong { color: var(--text); font-size: 1.15rem; }
 
+/* Everything played: the meeples jump for joy. Longhands keep the staggered delays. */
+.empty.cheer .meeple { animation-name: cheer; animation-duration: 900ms; }
+
 .login {
   display: flex;
   flex-direction: column;
@@ -326,6 +330,7 @@ button.secondary {
 .login .meeples { margin-top: -64px; }
 
 .stacked { display: flex; flex-direction: column; gap: 12px; margin-top: 4px; }
+.stacked.shake { animation: shake 420ms ease-in-out; }
 
 @media (min-width: 520px) {
   .login { align-self: center; width: 420px; padding: 32px 32px 28px; }
@@ -346,7 +351,10 @@ button.secondary {
 }
 
 .sheet[open] { display: flex; flex-direction: column; gap: 16px; animation: sheet-up 260ms ease-out; }
+.sheet.closing { animation: sheet-down 200ms ease-in forwards; }
 .sheet::backdrop { background: rgb(20 15 30 / 0.6); }
+.sheet[open]::backdrop { animation: fade-in 260ms ease-out; }
+.sheet.closing::backdrop { animation: fade-in 200ms ease-in reverse forwards; }
 .sheet p { text-align: center; }
 .sheet .row { display: flex; gap: 10px; }
 .sheet .row button { flex: 1; padding: 0 12px; }
@@ -355,12 +363,19 @@ button.secondary {
 .lookup .meeple { width: 56px; height: 56px; animation: hop 700ms ease-in-out infinite; }
 
 .sheet-form { display: flex; flex-direction: column; gap: 12px; padding-top: 4px; }
-.sheet-form h2 { text-align: center; }
+.sheet-form h2 { text-align: center; animation: pop-in 320ms cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+.sheet-form h2.found { animation: found 520ms cubic-bezier(0.34, 1.56, 0.64, 1) both; }
 .sheet-form p { color: var(--muted); }
 
 .choices { display: flex; flex-direction: column; gap: 10px; }
 .choices button { padding: 10px 16px; white-space: normal; text-align: left; }
 .choices .other { color: var(--muted); border-style: dashed; box-shadow: none; }
+.choices > * { animation: pop-in 320ms cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+.choices > :nth-child(2) { animation-delay: 60ms; }
+.choices > :nth-child(3) { animation-delay: 120ms; }
+.choices > :nth-child(4) { animation-delay: 180ms; }
+.choices > :nth-child(5) { animation-delay: 240ms; }
+.choices > :nth-child(n + 6) { animation-delay: 300ms; }
 
 .viewfinder {
   position: relative;
@@ -383,6 +398,20 @@ button.secondary {
   animation: scan-line 1.8s ease-in-out infinite alternate;
 }
 
+/* A code was read: the frame freezes, flashes green and the line stops where it was. */
+.viewfinder::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: var(--m-green);
+  opacity: 0;
+}
+
+.viewfinder.hit { box-shadow: 0 0 0 4px var(--m-green); }
+.viewfinder.hit::before { animation: hit-flash 450ms ease-out; }
+.viewfinder.hit::after { background: var(--m-green); box-shadow: 0 0 16px 4px var(--m-green); animation-play-state: paused; }
+
 @media (min-width: 560px) {
   .sheet {
     width: min(480px, calc(100% - 32px));
@@ -393,6 +422,45 @@ button.secondary {
     box-shadow: 6px 6px 0 var(--shadow);
   }
 }
+
+/* Confetti, see confetti.ts. Named so it stays live and on top during view transitions. */
+
+#confetti {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  overflow: hidden;
+  pointer-events: none;
+  view-transition-name: confetti;
+}
+
+#confetti i {
+  position: absolute;
+  width: 9px;
+  height: 13px;
+  margin: -6px 0 0 -4px;
+  border: 1.5px solid var(--line);
+  border-radius: 2px;
+}
+
+/* View transitions: games move between the two lists, new ones pop in. The rest of the page
+   switches at once instead of crossfading, which would ghost the moving cards' old spots. */
+
+::view-transition { pointer-events: none; }
+
+::view-transition-old(root),
+::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
+
+::view-transition-group(.move) {
+  animation-duration: 480ms;
+  animation-timing-function: cubic-bezier(0.34, 1.25, 0.64, 1);
+}
+
+::view-transition-new(.pop) { animation: pop-in 360ms cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+
+::view-transition-group(confetti),
+::view-transition-new(confetti) { animation: none; }
+::view-transition-old(confetti) { display: none; }
 
 /* Motion */
 
@@ -428,6 +496,39 @@ button.secondary {
   to { opacity: 0; transform: translateY(8px); }
 }
 
+@keyframes bump {
+  from { scale: 0.4; }
+  60% { scale: 1.25; }
+}
+
+@keyframes cheer {
+  0%, 70%, 100% { translate: 0 0; scale: 1; }
+  15% { translate: 0 2px; scale: 1.1 0.9; }
+  40% { translate: 0 -22px; scale: 0.95 1.05; }
+}
+
+@keyframes shake {
+  20%, 60% { translate: -8px 0; }
+  40%, 80% { translate: 8px 0; }
+}
+
+@keyframes sheet-down {
+  to { transform: translateY(100%); opacity: 0; }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+}
+
+@keyframes found {
+  from { opacity: 0; scale: 0.3; rotate: -8deg; }
+  60% { scale: 1.15; rotate: 3deg; }
+}
+
+@keyframes hit-flash {
+  from { opacity: 0.6; }
+}
+
 @keyframes stripes {
   to { background-position: 28.28px 0; }
 }
@@ -439,4 +540,11 @@ button.secondary {
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
+
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+  }
 }

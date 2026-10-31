@@ -2,9 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
+import { burst, rain } from "./confetti";
+import { tada } from "./sounds";
 
 // The first tap only arms the button; a second tap within a few seconds submits.
-export default function PlayedButton() {
+// The last game on the list gets the bigger celebration.
+export default function PlayedButton({ last }: { last: boolean }) {
   const { pending } = useFormStatus();
   const [armedAt, setArmedAt] = useState<number | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
@@ -23,7 +26,12 @@ export default function PlayedButton() {
       aria-busy={pending}
       onClick={(e) => {
         // Ignore a quick double tap so it can't confirm by accident.
-        if (armedAt && Date.now() - armedAt > 400) return;
+        if (armedAt && Date.now() - armedAt > 400) {
+          burst(e.currentTarget);
+          if (last) rain();
+          tada(last);
+          return;
+        }
         e.preventDefault();
         if (armedAt) return;
         setArmedAt(Date.now());

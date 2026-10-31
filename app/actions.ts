@@ -44,7 +44,8 @@ export async function markUnplayed(id: string) {
 
 export async function login(formData: FormData) {
   if (!isValidPassword(String(formData.get("password") ?? ""))) {
-    redirect("/login?error=1");
+    // A new value each time, so the form remounts and shakes again on every wrong attempt.
+    redirect(`/login?error=${Date.now()}`);
   }
   (await cookies()).set(SESSION_COOKIE, sessionToken(), {
     httpOnly: true,

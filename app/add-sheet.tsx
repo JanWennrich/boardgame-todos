@@ -4,6 +4,7 @@ import { useEffect, useEffectEvent, useRef, useState } from "react";
 import type { BarcodeDetector as Ponyfill } from "barcode-detector/ponyfill";
 import { lookupBarcode } from "./actions";
 import Meeple from "./meeple";
+import { beep } from "./sounds";
 import SubmitButton from "./submit-button";
 
 type Detector = Pick<Ponyfill, "detect">;
@@ -41,7 +42,17 @@ export default function AddSheet({
   const [code, setCode] = useState<string | null>(null);
   // null while the lookup runs.
   const [names, setNames] = useState<string[] | null>(null);
+  // A code just scanned: the viewfinder freezes and flashes for a moment before the lookup starts.
+  const [hit, setHit] = useState<string | null>(null);
   const scanning = !typing && code === null;
+
+  function registerHit(detected: string) {
+    beep();
+    navigator.vibrate?.(80);
+    videoRef.current?.pause();
+    setMessage("Erkannt!");
+    setHit(detected);
+  }
 
   function handleDetected(detected: string) {
     setCode(detected);
@@ -54,9 +65,20 @@ export default function AddSheet({
   function scanAgain() {
     setTyping(false);
     setCode(null);
+    setMessage("Kamera wird gestartet …");
+  }
+
+  // Slides the sheet out before closing it; onClose then unmounts it.
+  async function close() {
+    const dialog = dialogRef.current!;
+    dialog.classList.add("closing");
+    // allSettled: the switch to the closing animation cancels a slide-in that is still running.
+    await Promise.allSettled(dialog.getAnimations().map((a) => a.finished));
+    dialog.close();
   }
 
   const detected = useEffectEvent(handleDetected);
+  const onHit = useEffectEvent(registerHit);
 
   useEffect(() => {
     const dialog = dialogRef.current!;
@@ -89,8 +111,8 @@ export default function AddSheet({
       const video = videoRef.current;
       if (stopped || !video) return;
       if (video.readyState >= video.HAVE_CURRENT_DATA) {
-        const [hit] = await (await detector()).detect(video);
-        if (hit && !stopped) return detected(hit.rawValue);
+        const [result] = await (await detector()).detect(video);
+        if (result && !stopped) return onHit(result.rawValue);
       }
       timer = window.setTimeout(scanFrame, 200);
     }
@@ -116,12 +138,21 @@ export default function AddSheet({
     };
   }, [scanning]);
 
+  useEffect(() => {
+    if (hit === null) return;
+    const timer = setTimeout(() => {
+      setHit(null);
+      detected(hit);
+    }, 450);
+    return () => clearTimeout(timer);
+  }, [hit]);
+
   async function scanPhoto(file: File | undefined) {
     if (!file) return;
     setMessage("Foto wird ausgewertet …");
     try {
-      const [hit] = await (await detector()).detect(file);
-      if (hit) handleDetected(hit.rawValue);
+      const [result] = await (await detector()).detect(file);
+      if (result) registerHit(result.rawValue);
       else setMessage("Kein Barcode erkannt – versuch es mit einem schärferen Foto.");
     } catch {
       setMessage("Barcode-Erkennung konnte nicht geladen werden.");
@@ -129,10 +160,18 @@ export default function AddSheet({
   }
 
   return (
-    <dialog ref={dialogRef} onClose={onClose} className="sheet">
+    <dialog
+      ref={dialogRef}
+      onClose={onClose}
+      onCancel={(e) => {
+        e.preventDefault();
+        close();
+      }}
+      className="sheet"
+    >
       {scanning ? (
         <>
-          <div className="viewfinder" hidden={!live}>
+          <div className={hit ? "viewfinder hit" : "viewfinder"} hidden={!live}>
             <video ref={videoRef} autoPlay muted playsInline />
           </div>
           <p>{message}</p>
@@ -148,7 +187,13 @@ export default function AddSheet({
           <p>Spiel wird gesucht …</p>
         </div>
       ) : (
-        <form action={onAdd} className="sheet-form">
+        <form
+          action={async (formData) => {
+            await onAdd(formData);
+            await close();
+          }}
+          className="sheet-form"
+        >
           {code && <input type="hidden" name="barcode" value={code} />}
           {names && names.length > 1 ? (
             <>
@@ -166,7 +211,7 @@ export default function AddSheet({
             </>
           ) : (
             <>
-              <h2>{names?.length ? "Gefunden!" : "Wie heißt das Spiel?"}</h2>
+              {names?.length ? <h2 className="found">Gefunden!</h2> : <h2>Wie heißt das Spiel?</h2>}
               {names?.length === 0 && <p>Der Barcode ist noch unbekannt. Wir merken uns den Namen fürs nächste Mal.</p>}
               <input
                 name="name"
@@ -199,7 +244,7 @@ export default function AddSheet({
             </button>
           )
         )}
-        <button type="button" className="secondary" onClick={() => dialogRef.current?.close()}>
+        <button type="button" className="secondary" onClick={close}>
           Abbrechen
         </button>
       </div>

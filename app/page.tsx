@@ -15,11 +15,16 @@ export default async function Home() {
         <p className="eyebrow">🎲 Brettspiel-Liste</p>
         <h1>
           Noch zu spielen
-          {games.length > 0 && <span className="count">{games.length}</span>}
+          {/* key: a new badge pops whenever the number changes. */}
+          {games.length > 0 && (
+            <span key={games.length} className="count">
+              {games.length}
+            </span>
+          )}
         </h1>
       </header>
 
-      <GameList games={games} />
+      <GameList games={games} allPlayed={played.length > 0} />
       <PlayedList games={played} />
     </>
   );

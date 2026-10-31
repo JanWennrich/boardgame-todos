@@ -13,7 +13,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
       </div>
       <h1>Brettspiel-Liste</h1>
       <p className="tagline">Was kommt als Nächstes auf den Tisch?</p>
-      <form action={login} className="stacked">
+      <form key={error} action={login} className={error ? "stacked shake" : "stacked"}>
         <input name="password" type="password" placeholder="Passwort" required autoFocus />
         <button>Anmelden</button>
       </form>

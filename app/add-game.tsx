@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { addGame } from "./actions";
 import AddSheet from "./add-sheet";
+import { clack, thud, unlockAudio } from "./sounds";
 
 export type Highlight = { id: string; added: boolean };
 
@@ -18,9 +19,11 @@ export default function AddGame({ onResult }: { onResult: (highlight: Highlight)
   }, [toast]);
 
   async function add(formData: FormData) {
+    // The sheet closes itself once this returns.
     const result = await addGame(formData);
-    setOpen(false);
     if (!result) return;
+    if (result.added) clack();
+    else thud();
     const { name } = result.game;
     setToast({
       text: result.added ? `${name} wurde hinzugefügt 🎉` : `„${name}“ steht schon auf der Liste.`,
@@ -39,7 +42,14 @@ export default function AddGame({ onResult }: { onResult: (highlight: Highlight)
         )}
       </div>
 
-      <button className="fab" onClick={() => setOpen(true)}>
+      <button
+        className="fab"
+        onClick={() => {
+          // Now, during the tap, so the scan beep can play later.
+          unlockAudio();
+          setOpen(true);
+        }}
+      >
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <path d="M12 5v14M5 12h14" />
         </svg>
