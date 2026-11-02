@@ -82,3 +82,15 @@ export function thud() {
   tone(330, { type: "sine", length: 0.14, volume: 0.25 });
   tone(247, { type: "sine", at: 0.16, length: 0.22, volume: 0.25 });
 }
+
+// The flapper of a prize wheel hitting a peg; higher towards the end, as the wheel slows down.
+export function tick(progress = 0) {
+  tone(700 + progress * 700, { type: "square", length: 0.035, volume: 0.05 });
+}
+
+// Ta-ta-ta-taaa for the game the wheel landed on.
+export function fanfare() {
+  [392, 392, 392].forEach((f, i) => tone(f, { type: "sawtooth", at: i * 0.11, length: 0.09, volume: 0.07 }));
+  [523, 659, 784].forEach((f) => tone(f, { type: "sawtooth", at: 0.33, length: 0.9, volume: 0.05 }));
+  tone(1047, { at: 0.33, length: 1.1, volume: 0.12 });
+}

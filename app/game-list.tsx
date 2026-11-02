@@ -6,6 +6,7 @@ import { markPlayed } from "./actions";
 import AddGame, { type Highlight } from "./add-game";
 import Cover from "./cover";
 import GameDetails from "./game-details";
+import GamePicker from "./game-picker";
 import Meeple, { colorFor } from "./meeple";
 import PlayedButton from "./played-button";
 import SortMenu, { defaultSort, type Sort } from "./sort-menu";
@@ -43,6 +44,9 @@ export default function GameList({ games, allPlayed }: { games: Game[]; allPlaye
           {games.length > 1 && <SortMenu value={sort} onChange={setSort} />}
         </div>
       </header>
+
+      {/* The picked game flashes like a new one. */}
+      {games.length > 1 && <GamePicker games={games} onPick={(id) => setHighlight({ id, added: true })} />}
 
       <AddGame onResult={setHighlight} />
 
