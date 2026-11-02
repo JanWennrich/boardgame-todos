@@ -22,7 +22,7 @@ function piece(i: number, x: number, y: number) {
   return el;
 }
 
-const reducedMotion = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
+export const reducedMotion = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 // A fan of confetti shooting up from an element and falling back down.
 export function burst(from: Element, count = 28) {
