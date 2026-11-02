@@ -8,6 +8,7 @@ const body = Nunito({ subsets: ["latin"], variable: "--font-body" });
 export const metadata: Metadata = {
   title: "Brettspiel-Liste",
   description: "Welche Brettspiele wir noch spielen wollen",
+  appleWebApp: { capable: true, title: "Brettspiele" },
 };
 
 export const viewport: Viewport = {
