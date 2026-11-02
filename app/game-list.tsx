@@ -4,6 +4,7 @@ import { useState, ViewTransition } from "react";
 import type { Game } from "@/lib/games";
 import { markPlayed } from "./actions";
 import AddGame, { type Highlight } from "./add-game";
+import Cover from "./cover";
 import GameDetails from "./game-details";
 import Meeple, { colorFor } from "./meeple";
 import PlayedButton from "./played-button";
@@ -88,7 +89,7 @@ export default function GameList({ games, allPlayed }: { games: Game[]; allPlaye
                     if (e.animationName === effect) setHighlight(null);
                   }}
                 >
-                  <Meeple color={colorFor(game.id)} />
+                  <Cover src={game.thumbnailUrl} color={colorFor(game.id)} />
                   <GameDetails game={game} last={games.length === 1}>
                     {game.name}
                   </GameDetails>

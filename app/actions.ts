@@ -33,16 +33,24 @@ async function deviceId() {
   return id;
 }
 
+// Only BGG's image host, so a crafted request can't make the list load images from elsewhere.
+function bggImage(value: FormDataEntryValue | null) {
+  const url = String(value ?? "");
+  return url.startsWith("https://cf.geekdo-images.com/") ? url : undefined;
+}
+
 export async function addGame(formData: FormData) {
   await requireSession();
   const name = String(formData.get("name") ?? "").trim().slice(0, 200);
   if (!name) return null;
-  const result = await games.addGame(name);
   const code = barcodes.normalizeBarcode(String(formData.get("barcode") ?? ""));
+  const bggId = Number(formData.get("bgg_id"));
+  const id = code && Number.isSafeInteger(bggId) && bggId > 0 ? bggId : undefined;
+  const thumbnailUrl = id ? bggImage(formData.get("thumbnail_url")) : undefined;
+  const imageUrl = id ? bggImage(formData.get("image_url")) : undefined;
+  const result = await games.addGame(name, code ? { barcode: code, bggId: id, thumbnailUrl, imageUrl } : {});
   if (code) {
-    const bggId = Number(formData.get("bgg_id"));
-    const id = Number.isSafeInteger(bggId) && bggId > 0 ? bggId : undefined;
-    await barcodes.rememberBarcode(code, { id, name });
+    await barcodes.rememberBarcode(code, { id, name, thumbnailUrl, imageUrl });
     // Set for games picked from suggestions or search results; verified ones need no vote.
     if (id && formData.get("report")) {
       const userId = await deviceId();

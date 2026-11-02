@@ -20,6 +20,16 @@ App als Stimme an GameUPC zurück. Den gewählten Namen samt BGG-ID merkt sich d
 
 Passwort ändern: `APP_PASSWORD` anpassen und neu deployen – alle sind danach abgemeldet.
 
+Cover für ältere Spiele nachtragen: Spiele von vor der Cover-Anzeige bekommen Barcode, BGG-ID und Cover über
+den Barcode-Cache und GameUPC. Ohne `--write` zeigt das Skript nur, was es ändern würde. Spiele, die nie
+gescannt wurden, bleiben ohne Cover. Die Datei `.env.backfill` danach wieder löschen.
+
+```bash
+vercel env pull .env.backfill --environment=production
+node --env-file=.env.backfill scripts/backfill-covers.ts
+node --env-file=.env.backfill scripts/backfill-covers.ts --write
+```
+
 ## Lokal entwickeln
 
 Lokal läuft eine eigene Redis-Datenbank in Docker, die Produktiv-Daten bleiben unberührt.

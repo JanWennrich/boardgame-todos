@@ -4,7 +4,8 @@ import { useEffect, useEffectEvent, useRef, useState } from "react";
 import type { BarcodeDetector as Ponyfill } from "barcode-detector/ponyfill";
 import type { Lookup } from "@/lib/barcodes";
 import { lookupBarcode, searchGames } from "./actions";
-import Meeple from "./meeple";
+import Cover from "./cover";
+import Meeple, { colorFor } from "./meeple";
 import { closeSheet } from "./sheet";
 import { beep } from "./sounds";
 import SubmitButton from "./submit-button";
@@ -217,6 +218,9 @@ export default function AddSheet({
         <form action={add} className="sheet-form">
           <input type="hidden" name="barcode" value={code} />
           {lookup.found.id !== undefined && <input type="hidden" name="bgg_id" value={lookup.found.id} />}
+          {lookup.found.thumbnailUrl && <input type="hidden" name="thumbnail_url" value={lookup.found.thumbnailUrl} />}
+          {lookup.found.imageUrl && <input type="hidden" name="image_url" value={lookup.found.imageUrl} />}
+          {lookup.found.thumbnailUrl && <img className="cover" src={lookup.found.thumbnailUrl} alt="" />}
           <h2 className="found">Gefunden!</h2>
           <input
             name="name"
@@ -269,6 +273,8 @@ export default function AddSheet({
           action={(formData) => {
             const game = lookup.suggestions.find((g) => String(g.id) === formData.get("bgg_id"))!;
             formData.set("name", game.name);
+            if (game.thumbnailUrl) formData.set("thumbnail_url", game.thumbnailUrl);
+            if (game.imageUrl) formData.set("image_url", game.imageUrl);
             return add(formData);
           }}
           className="sheet-form"
@@ -280,8 +286,11 @@ export default function AddSheet({
           <div className="choices">
             {lookup.suggestions.map((g) => (
               <SubmitButton key={g.id} className="secondary" name="bgg_id" value={String(g.id)}>
-                {g.name}
-                {g.year && <span className="year"> ({g.year})</span>}
+                <Cover src={g.thumbnailUrl} color={colorFor(String(g.id))} />
+                <span>
+                  {g.name}
+                  {g.year && <span className="year"> ({g.year})</span>}
+                </span>
               </SubmitButton>
             ))}
             <button type="button" className="secondary other" onClick={() => setSearching(true)}>

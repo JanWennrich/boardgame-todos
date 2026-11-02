@@ -343,6 +343,23 @@ button.secondary {
 .games.done .name { color: var(--muted); }
 .games.done time { display: block; font-size: 0.85rem; font-weight: 400; }
 
+/* Box covers, see cover.tsx. Each keeps its shape and fits into a --cover square. */
+
+.cover-slot { flex: none; display: flex; justify-content: center; width: var(--cover); }
+
+.cover {
+  display: block;
+  max-width: var(--cover);
+  max-height: var(--cover);
+  background: var(--surface);
+  border: 2px solid var(--line);
+  border-radius: 8px;
+}
+
+.games { --cover: 64px; }
+.games.done { --cover: 48px; }
+.games.done .cover { opacity: 0.7; }
+
 /* Meeples */
 
 .meeple {
@@ -438,9 +455,16 @@ button.secondary {
 .sheet-form h2 { text-align: center; animation: pop-in 320ms cubic-bezier(0.34, 1.56, 0.64, 1) both; }
 .sheet-form h2.found { animation: found 520ms cubic-bezier(0.34, 1.56, 0.64, 1) both; }
 .sheet-form p { color: var(--muted); }
+/* Thumbnails are at most 200×150, so much bigger would only get blurry. */
+.sheet-form,
+.details { --cover: 180px; }
+.sheet-form > .cover { align-self: center; }
 
 .choices { display: flex; flex-direction: column; gap: 10px; }
-.choices button { padding: 10px 16px; white-space: normal; text-align: left; }
+.choices button { display: flex; align-items: center; gap: 12px; padding: 10px 16px; white-space: normal; text-align: left; }
+.choices button:has(> :is(.cover, .meeple)) { padding-left: 8px; }
+.choices { --cover: 56px; }
+.choices .meeple { width: 40px; height: 40px; }
 .choices .other { color: var(--muted); border-style: dashed; box-shadow: none; }
 .choices .year { color: var(--muted); font-weight: normal; }
 .choices > * { animation: pop-in 320ms cubic-bezier(0.34, 1.56, 0.64, 1) both; }

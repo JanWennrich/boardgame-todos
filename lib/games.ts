@@ -5,7 +5,9 @@ import { Redis } from "@upstash/redis";
 const redis = Redis.fromEnv();
 const KEY = "games";
 
-export type Game = { id: string; name: string; addedAt: number; playedAt?: number };
+// What a barcode scan found out about the game; all of it is missing for games added by name.
+export type Details = { barcode?: string; bggId?: number; thumbnailUrl?: string; imageUrl?: string };
+export type Game = Details & { id: string; name: string; addedAt: number; playedAt?: number };
 
 export async function listGames(): Promise<Game[]> {
   const games = await redis.hgetall<Record<string, Game>>(KEY);
@@ -14,12 +16,22 @@ export async function listGames(): Promise<Game[]> {
 
 // Returns the existing game instead of adding a second one with the same name.
 // A game that was already played goes back on the list.
-export async function addGame(name: string): Promise<{ game: Game; added: boolean }> {
+export async function addGame(name: string, details: Details = {}): Promise<{ game: Game; added: boolean }> {
   const games = await listGames();
   const existing = games.find((g) => g.name.toLowerCase() === name.toLowerCase());
   if (existing && !existing.playedAt) return { game: existing, added: false };
 
-  const game: Game = { id: existing?.id ?? randomUUID(), name: existing?.name ?? name, addedAt: Date.now() };
+  // Without a new scan, a game back from the played list keeps what its last scan found.
+  const { barcode, bggId, thumbnailUrl, imageUrl } = details.barcode || !existing ? details : existing;
+  const game: Game = {
+    id: existing?.id ?? randomUUID(),
+    name: existing?.name ?? name,
+    addedAt: Date.now(),
+    barcode,
+    bggId,
+    thumbnailUrl,
+    imageUrl,
+  };
   await redis.hset(KEY, { [game.id]: game });
   return { game, added: true };
 }

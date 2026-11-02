@@ -8,20 +8,20 @@ const KEY = "barcodes";
 const GAMEUPC_URL = process.env.GAMEUPC_API_URL ?? "https://api.gameupc.com/test";
 const GAMEUPC_KEY = process.env.GAMEUPC_API_KEY ?? "test_test_test_test_test";
 
-export type Game = { id: number; name: string; year?: string };
+// The cover URLs point to BGG's image host; GameUPC copies them from there.
+export type Match = { id?: number; name: string; thumbnailUrl?: string; imageUrl?: string };
+export type Game = Match & { id: number; year?: string };
 
 // Either a game we are sure about, or suggestions (possibly none) for the user to pick from or search past.
-export type Lookup =
-  | { found: { id?: number; name: string } }
-  | { suggestions: Game[]; searchedFor: string };
+export type Lookup = { found: Match } | { suggestions: Game[]; searchedFor: string };
 
 // Entries from before BGG IDs were stored hold just the name.
-type Remembered = { id?: number; name: string } | string | number;
+type Remembered = Match | string | number;
 
 type UpcInfo = {
   bgg_info_status?: string;
   searched_for?: string;
-  bgg_info?: { id: number; name: string; published?: string }[];
+  bgg_info?: { id: number; name: string; published?: string; thumbnail_url?: string; image_url?: string }[];
 };
 
 // Scanners report UPC-A either as 12 digits or as EAN-13 with a leading 0; GameUPC keys on the 12-digit form.
@@ -48,7 +48,13 @@ function games(info: UpcInfo): Game[] {
   // GameUPC sends "0" for an unknown year.
   return (info.bgg_info ?? [])
     .slice(0, 5)
-    .map(({ id, name, published }) => ({ id, name, year: published && published !== "0" ? published : undefined }));
+    .map(({ id, name, published, thumbnail_url, image_url }) => ({
+      id,
+      name,
+      year: published && published !== "0" ? published : undefined,
+      thumbnailUrl: thumbnail_url,
+      imageUrl: image_url,
+    }));
 }
 
 export async function lookupBarcode(code: string): Promise<Lookup> {
@@ -66,7 +72,7 @@ export async function searchGames(code: string, query: string): Promise<Game[]> 
   return games(await fetchUpc(code, query));
 }
 
-export async function rememberBarcode(code: string, game: { id?: number; name: string }) {
+export async function rememberBarcode(code: string, game: Match) {
   await redis.hset(KEY, { [code]: game });
 }
 

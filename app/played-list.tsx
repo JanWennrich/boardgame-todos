@@ -1,7 +1,8 @@
 import { ViewTransition } from "react";
 import type { Game } from "@/lib/games";
+import Cover from "./cover";
 import GameDetails from "./game-details";
-import Meeple, { colorFor } from "./meeple";
+import { colorFor } from "./meeple";
 
 // Rendered on the server, so pin the time zone instead of using the server's.
 const date = new Intl.DateTimeFormat("de-DE", { day: "numeric", month: "short", year: "numeric", timeZone: "Europe/Berlin" });
@@ -24,7 +25,7 @@ export default function PlayedList({ games }: { games: Game[] }) {
           // Same name as in the list above, so a game moves between the two.
           <ViewTransition key={game.id} name={`game-${game.id}`} share="move" update="move" exit="pop-out" default="none">
             <li>
-              <Meeple color={colorFor(game.id)} />
+              <Cover src={game.thumbnailUrl} color={colorFor(game.id)} />
               <GameDetails game={game}>
                 {game.name}
                 <time dateTime={new Date(game.playedAt!).toISOString()}>{date.format(game.playedAt)}</time>

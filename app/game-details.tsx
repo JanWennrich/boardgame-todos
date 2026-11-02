@@ -4,7 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal, useFormStatus } from "react-dom";
 import type { Game } from "@/lib/games";
 import { deleteGame, markPlayed, markUnplayed } from "./actions";
-import Meeple, { colorFor } from "./meeple";
+import Cover from "./cover";
+import { colorFor } from "./meeple";
 import PlayedButton from "./played-button";
 import { closeSheet } from "./sheet";
 import SubmitButton from "./submit-button";
@@ -74,7 +75,7 @@ function GameSheet({ game, last, onClose }: { game: Game; last: boolean; onClose
           <path d="M6 6l12 12M18 6L6 18" />
         </svg>
       </button>
-      <Meeple color={colorFor(game.id)} />
+      <Cover src={game.thumbnailUrl} color={colorFor(game.id)} />
       <h2>{game.name}</h2>
       <p>
         Hinzugefügt am {date.format(game.addedAt)}
