@@ -86,6 +86,12 @@ function GameSheet({ game, last, onClose }: { game: Game; last: boolean; onClose
           </>
         )}
       </p>
+      {/* Only games from a scan know their BGG ID. */}
+      {game.bggId && (
+        <a className="bgg" href={`https://boardgamegeek.com/boardgame/${game.bggId}`} target="_blank" rel="noopener noreferrer">
+          Auf BoardGameGeek ansehen ↗
+        </a>
+      )}
       <div className="row">
         <form
           action={async () => {

@@ -517,6 +517,7 @@ button.secondary {
 .details .meeple { width: 64px; height: 64px; animation: hop 2.4s ease-in-out infinite; }
 .details h2 { text-align: center; overflow-wrap: anywhere; }
 .details p { color: var(--muted); }
+.details .bgg { color: inherit; font-weight: 600; text-underline-offset: 3px; }
 .details .row { align-self: stretch; }
 .details .row form { display: flex; flex: 1; }
 .details .delete { color: var(--error); }
