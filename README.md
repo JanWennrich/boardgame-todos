@@ -15,7 +15,8 @@ Gemeinsame Liste der Brettspiele, die wir noch spielen wollen. Next.js auf Verce
 Barcode-Scan: Barcodes werden über [GameUPC](https://gameupc.com) einem Spiel zugeordnet. Ohne weitere
 Einstellungen nutzt die App deren öffentlichen Test-Server. Für die Produktiv-Datenbank per E-Mail einen
 API-Key anfragen und `GAMEUPC_API_URL=https://api.gameupc.com/v1` sowie `GAMEUPC_API_KEY` setzen.
-Selbst eingegebene Namen merkt sich die App pro Barcode in Redis.
+Ist GameUPC sich nicht sicher, wählt man aus Vorschlägen oder sucht das Spiel per Name; die Auswahl meldet die
+App als Stimme an GameUPC zurück. Den gewählten Namen samt BGG-ID merkt sich die App pro Barcode in Redis.
 
 Passwort ändern: `APP_PASSWORD` anpassen und neu deployen – alle sind danach abgemeldet.
 

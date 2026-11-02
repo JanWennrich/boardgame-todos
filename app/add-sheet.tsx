@@ -2,7 +2,8 @@
 
 import { useEffect, useEffectEvent, useRef, useState } from "react";
 import type { BarcodeDetector as Ponyfill } from "barcode-detector/ponyfill";
-import { lookupBarcode } from "./actions";
+import type { Lookup } from "@/lib/barcodes";
+import { lookupBarcode, searchGames } from "./actions";
 import Meeple from "./meeple";
 import { closeSheet } from "./sheet";
 import { beep } from "./sounds";
@@ -41,8 +42,12 @@ export default function AddSheet({
   const [live, setLive] = useState(true);
   const [typing, setTyping] = useState(false);
   const [code, setCode] = useState<string | null>(null);
-  // null while the lookup runs.
-  const [names, setNames] = useState<string[] | null>(null);
+  // null while the lookup runs. Search results replace the suggestions.
+  const [lookup, setLookup] = useState<Lookup | null>(null);
+  // The search form instead of the suggestions, after "none of these".
+  const [searching, setSearching] = useState(false);
+  // The user ran a search, so a game without a match may be added as typed.
+  const [searched, setSearched] = useState(false);
   // A code just scanned: the viewfinder freezes and flashes for a moment before the lookup starts.
   const [hit, setHit] = useState<string | null>(null);
   const scanning = !typing && code === null;
@@ -57,10 +62,32 @@ export default function AddSheet({
 
   function handleDetected(detected: string) {
     setCode(detected);
-    setNames(null);
+    setLookup(null);
+    setSearching(false);
+    setSearched(false);
     lookupBarcode(detected)
+      .catch((): Lookup => ({ suggestions: [], searchedFor: "" }))
+      .then(setLookup);
+  }
+
+  // Not a form action: the sheet stays open afterwards, and the transition an action ends with
+  // would start the list's view transition, whose snapshots of the cards paint over the sheet.
+  function search(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const query = String(new FormData(e.currentTarget).get("name") ?? "").trim();
+    setLookup(null);
+    searchGames(code!, query)
       .catch(() => [])
-      .then(setNames);
+      .then((games) => {
+        setLookup({ suggestions: games, searchedFor: query });
+        setSearching(false);
+        setSearched(true);
+      });
+  }
+
+  async function add(formData: FormData) {
+    await onAdd(formData);
+    await close();
   }
 
   function scanAgain() {
@@ -175,50 +202,92 @@ export default function AddSheet({
             </button>
           )}
         </>
-      ) : code !== null && names === null ? (
+      ) : code === null ? (
+        <form action={add} className="sheet-form">
+          <h2>Wie heißt das Spiel?</h2>
+          <input name="name" placeholder="Name des Spiels" required maxLength={200} autoComplete="off" autoFocus />
+          <SubmitButton>Hinzufügen</SubmitButton>
+        </form>
+      ) : lookup === null ? (
         <div className="lookup">
           <Meeple color={1} />
           <p>Spiel wird gesucht …</p>
         </div>
+      ) : "found" in lookup ? (
+        <form action={add} className="sheet-form">
+          <input type="hidden" name="barcode" value={code} />
+          {lookup.found.id !== undefined && <input type="hidden" name="bgg_id" value={lookup.found.id} />}
+          <h2 className="found">Gefunden!</h2>
+          <input
+            name="name"
+            defaultValue={lookup.found.name}
+            placeholder="Name des Spiels"
+            required
+            maxLength={200}
+            autoComplete="off"
+          />
+          <SubmitButton>Hinzufügen</SubmitButton>
+        </form>
+      ) : searching || !lookup.suggestions.length ? (
+        <>
+          <form onSubmit={search} className="sheet-form">
+            {searched && !lookup.suggestions.length ? (
+              <>
+                <h2>Nichts gefunden</h2>
+                <p>
+                  Für „{lookup.searchedFor}“ gibt es keinen Treffer. Versuch einen anderen Namen – oder füg das Spiel
+                  ohne Treffer hinzu.
+                </p>
+              </>
+            ) : (
+              <>
+                <h2>Wie heißt das Spiel?</h2>
+                {!searching && <p>Der Barcode ist noch unbekannt. Such das Spiel, dann erkennt GameUPC ihn künftig für alle.</p>}
+              </>
+            )}
+            <input
+              name="name"
+              defaultValue={lookup.searchedFor}
+              placeholder="Name des Spiels"
+              required
+              maxLength={200}
+              autoComplete="off"
+              autoFocus
+            />
+            <button>Suchen</button>
+          </form>
+          {searched && (
+            <form action={add} className="sheet-form">
+              <input type="hidden" name="barcode" value={code} />
+              <input type="hidden" name="name" value={lookup.searchedFor} />
+              <SubmitButton className="secondary">„{lookup.searchedFor}“ ohne Treffer hinzufügen</SubmitButton>
+            </form>
+          )}
+        </>
       ) : (
         <form
-          action={async (formData) => {
-            await onAdd(formData);
-            await close();
+          action={(formData) => {
+            const game = lookup.suggestions.find((g) => String(g.id) === formData.get("bgg_id"))!;
+            formData.set("name", game.name);
+            return add(formData);
           }}
           className="sheet-form"
         >
-          {code && <input type="hidden" name="barcode" value={code} />}
-          {names && names.length > 1 ? (
-            <>
-              <h2>Welches Spiel ist es?</h2>
-              <div className="choices">
-                {names.map((n) => (
-                  <SubmitButton key={n} className="secondary" name="name" value={n}>
-                    {n}
-                  </SubmitButton>
-                ))}
-                <button type="button" className="secondary other" onClick={() => setNames([])}>
-                  Keins davon – Namen eingeben
-                </button>
-              </div>
-            </>
-          ) : (
-            <>
-              {names?.length ? <h2 className="found">Gefunden!</h2> : <h2>Wie heißt das Spiel?</h2>}
-              {names?.length === 0 && <p>Der Barcode ist noch unbekannt. Wir merken uns den Namen fürs nächste Mal.</p>}
-              <input
-                name="name"
-                defaultValue={names?.[0]}
-                placeholder="Name des Spiels"
-                required
-                maxLength={200}
-                autoComplete="off"
-                autoFocus={!names?.length}
-              />
-              <SubmitButton>Hinzufügen</SubmitButton>
-            </>
-          )}
+          <input type="hidden" name="barcode" value={code} />
+          {/* The user's pick is a vote for this barcode at GameUPC. */}
+          <input type="hidden" name="report" value="1" />
+          <h2>Welches Spiel ist es?</h2>
+          <div className="choices">
+            {lookup.suggestions.map((g) => (
+              <SubmitButton key={g.id} className="secondary" name="bgg_id" value={String(g.id)}>
+                {g.name}
+                {g.year && <span className="year"> ({g.year})</span>}
+              </SubmitButton>
+            ))}
+            <button type="button" className="secondary other" onClick={() => setSearching(true)}>
+              Keins davon – suchen
+            </button>
+          </div>
         </form>
       )}
 
@@ -232,7 +301,7 @@ export default function AddSheet({
             Barcode scannen
           </button>
         ) : (
-          names && (
+          lookup && (
             <button type="button" className="secondary" onClick={scanAgain}>
               Nochmal scannen
             </button>
