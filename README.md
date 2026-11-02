@@ -22,10 +22,16 @@ Passwort ändern: `APP_PASSWORD` anpassen und neu deployen – alle sind danach 
 
 Cover für ältere Spiele nachtragen: Spiele von vor der Cover-Anzeige bekommen Barcode, BGG-ID und Cover über
 den Barcode-Cache und GameUPC. Ohne `--write` zeigt das Skript nur, was es ändern würde. Spiele, die nie
-gescannt wurden, bleiben ohne Cover. Die Datei `.env.backfill` danach wieder löschen.
+gescannt wurden, bleiben ohne Cover.
+
+Die Zugangsdaten kommen in eine Datei `.env.backfill`, die danach wieder gelöscht wird. `vercel env pull` hilft
+hier nicht, weil Vercel geheime Werte nicht herausgibt.
+
+- `KV_REST_API_URL` und `KV_REST_API_TOKEN`: in Vercel unter **Storage → Datenbank → .env.local**, oder in der
+  Upstash-Konsole im Bereich REST API
+- `GAMEUPC_API_URL=https://api.gameupc.com/v1` und `GAMEUPC_API_KEY`
 
 ```bash
-vercel env pull .env.backfill --environment=production
 node --env-file=.env.backfill scripts/backfill-covers.ts
 node --env-file=.env.backfill scripts/backfill-covers.ts --write
 ```
